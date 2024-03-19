@@ -16,6 +16,7 @@ Please note that the attached visual is an early-stage preview and does not repr
 
 ## Method and Steps
 To achieve this, this project is splited into following steps. The related files are named accordingly. View jupyter notebook and R markdown inside the folder for details.
+
   0. Generate stimulated data through Synthea and modify patients' ethnecity group and address information to suit Australia's situation. (Idealy, user should use their own database. This process is only for developer.)
   1. Create Redcap project, fit the generated data into redcap upload template and upload to the desired project through API. For merging and uploading data, refer to 1st intake's work [Link text]([URL](https://github.com/Clinical-Informatics-Collaborative/clinical_dashboards/tree/main/Redcap "Redcap Upload"). There are 3 project in total for demostration: 2 standard project and 1 non-standard project (with wrong column name).
   2. Connect to WEHI R Shiny server and fetch data from Redcap Project using API.
