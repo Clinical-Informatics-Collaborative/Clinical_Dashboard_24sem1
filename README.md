@@ -28,7 +28,9 @@ Completed:
 
   In Progress:
   3. Data tidying and visualization based on the existing code from 1st intake (Kaplan-Meier) and 2nd intake (Geomap), add extra pie chart or bar chart if possible.
+  
   4. Build R Shiny UI and Server and launch the website.
+
   5. If possible, figure out how to map non-standard project to correct column name so that it can show visualization.
 
 ## Q&A
