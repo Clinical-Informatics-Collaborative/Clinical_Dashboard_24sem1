@@ -1,0 +1,349 @@
+---
+title: "Data tidyup"
+output: html_document
+date: "2024-03-24"
+runtime: shiny
+---
+```{r}
+library(forcats)
+library(tidyr)
+library(dplyr)
+library(leaflet)
+library(maps)
+library(sf)
+library(ggplot2)
+library(shiny)
+library(shinydashboard)
+```
+
+
+```{r}
+#!/usr/bin/env Rscript
+token <- "2071190726F5AC9298E1DD1C3BEC19BA"
+url <- "https://redcap.wehi.edu.au/api/"
+formData <- list("token"=token,
+    content='record',
+    action='export',
+    format='csv',
+    type='flat',
+    csvDelimiter='',
+    rawOrLabel='raw',
+    rawOrLabelHeaders='raw',
+    exportCheckboxLabel='false',
+    exportSurveyFields='false',
+    exportDataAccessGroups='false',
+    returnFormat='csv'
+)
+response <- httr::POST(url, body = formData, encode = "form")
+result <- httr::content(response)
+print(result)
+```
+
+
+```{r}
+#data <- result
+data <- read.csv("data/insert_dataset.csv")
+
+# Fill NA values in 'redcap_repeat_instrument' column with "patient"
+data$redcap_repeat_instrument <- ifelse(is.na(data$redcap_repeat_instrument) | data$redcap_repeat_instrument == "", "patient", data$redcap_repeat_instrument)
+
+# Split the dataframe into a list of dataframes based on the values in 'redcap_repeat_instrument'
+df_list <- split(data, data$redcap_repeat_instrument)
+
+# If you want to assign each dataframe to a separate variable, you can do:
+df_patient <- df_list[["patient"]]
+df_condition <- df_list[["conditions"]]
+df_medication <- df_list[["medications"]]
+```
+
+
+```{r}
+df_patient
+```
+
+```{r}
+#choose a condition
+observe_condition <- "Ischemic heart disease (disorder)"
+all_patient <- nrow(df_patient)
+
+#check whether patient is a survivor
+df_patient$survivor <- ifelse(is.na(df_patient$deathdate_patient) | df_patient$deathdate_patient == "", 0, 1)
+
+#
+df_patient <- mutate(df_patient, ethnicity_patient = ifelse(ethnicity_patient == "Aboriginal and Torres Strait Islander", "Aboriginal", ethnicity_patient))
+
+```
+
+create a data frame for Geo map.
+```{r}
+#filter out the required column for geo map
+geo_column <- c("Id","ZIP","RACE","GENDER","ETHNICITY","INCOME","HEALTHCARE_EXPENSES","HEALTHCARE_COVERAGE","CONDITION","OBSERVED_CONDITION","VALUE","Suburb")
+
+geo_data <- df_patient %>%
+  select(Id = id_patient, ZIP = zip_patient, RACE = race_patient, GENDER = gender_patient, ETHNICITY = ethnicity_patient, INCOME = income_patient, HEALTHCARE_EXPENSES = healthcare_expenses_patient, HEALTHCARE_COVERAGE = healthcare_coverage_patient, Suburb = county_patient, VALUE = survivor) %>%
+  mutate(ZIP = as.integer(ZIP))
+
+geo_data
+```
+
+
+```{r}
+melbourne_suburbs_name <- c(
+  "Carlton", "Carlton North", "Docklands", "East Melbourne",
+  "Flemington", "Kensington", "Melbourne", "North Melbourne",
+  "Parkville", "Port Melbourne", "Southbank", "South Wharf",
+  "South Yarra", "West Melbourne", "Albert Park", "Balaclava",
+  "Elwood", "Middle Park", "Ripponlea", "St Kilda", "St Kilda East",
+  "St Kilda West", "South Melbourne", "Abbotsford", "Alphington",
+  "Burnley", "Clifton Hill", "Collingwood", "Cremorne", "Fairfield",
+  "Fitzroy", "Fitzroy North", "Princes Hill", "Richmond"
+)
+melbourne_suburbs <- st_read("data/sf/vic_localities.shp")
+
+melbourne_suburbs <- melbourne_suburbs[melbourne_suburbs$LOC_NAME
+                                        %in% melbourne_suburbs_name, ]
+
+patient_data <- geo_data
+
+agg_data <- patient_data %>%
+  group_by(Suburb) %>%
+  summarize(
+    total_patients = n(),
+    male_count = sum(GENDER == "1"),
+    female_count = sum(GENDER == "2"),
+    ratio = total_patients / all_patient,
+  )
+
+melbourne_suburbs <- left_join(melbourne_suburbs, agg_data,
+                               by = c("LOC_NAME" = "Suburb"))
+
+bins <- seq(0, 100, by = 10)
+pal <-
+  colorBin("YlOrRd", domain = melbourne_suburbs$total_patients, bins = bins)
+
+
+```
+
+```{r}
+ui <- dashboardPage(
+  dashboardHeader(title = "Basic dashboard"),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Map", tabName = "map"),
+      menuItem("Suburb Information", tabName = "suburb_info"),
+      menuItem("Race-Survival Heatmap", tabName = "race_survival_heatmap"),
+      menuItem("Income-Survival Heatmap", tabName = "income_survival_heatmap"),
+      menuItem("Healthcare Expenses-Survival Heatmap", tabName = "healthcare_expenses_heatmap")
+    )
+  ),
+  dashboardBody(
+    tabItems(
+      tabItem(tabName = "map",
+              leafletOutput("melbourneMap")),
+      
+      # Suburb Information tab content
+      tabItem(tabName = "suburb_info",
+              fluidRow(
+                box(
+                  title = "Suburb Information",
+                  solidHeader = TRUE,
+                  status = "info",
+                  width = 12,
+                  uiOutput("suburbInfo")
+                )
+              )),
+      
+      # Race-Survival Heatmap tab content
+      tabItem(tabName = "race_survival_heatmap",
+              plotOutput("raceSurvivalPlot")),
+      
+      # Income-Survival Heatmap tab content
+      tabItem(tabName = "income_survival_heatmap",
+              plotOutput("incomeRangeSurvivalPlot")),
+      
+      # Healthcare Expenses-Survival Heatmap tab content
+      tabItem(tabName = "healthcare_expenses_heatmap",
+              plotOutput("healthcareExpensesSurvivalPlot"))
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  output$melbourneMap <- renderLeaflet({
+    leaflet(data = melbourne_suburbs) %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      addPolygons(
+        layerId = ~ LOC_PID,
+        fillColor = ~ pal(total_patients),
+        weight = 2,
+        opacity = 1,
+        color = "white",
+        dashArray = "3",
+        fillOpacity = 0.7,
+        highlight = highlightOptions(
+          weight = 5,
+          color = "#666",
+          dashArray = "",
+          fillOpacity = 0.7,
+          bringToFront = TRUE
+        ),
+        label = ~ LOC_NAME,
+        labelOptions = labelOptions(
+          style = list("font-weight" = "normal", padding = "3px 8px"),
+          textsize = "15px",
+          direction = "auto"
+        )
+      ) %>%
+      addLegend(
+        pal = pal,
+        values = ~ total_patients,
+        opacity = 0.7,
+        title = "Number of patients",
+        position = "bottomright"
+      )
+  })
+  
+  observe({
+    # when hover on
+    hover_suburb_LOC_PID <- input$melbourneMap_shape_mouseover$id
+    update_suburb_info(hover_suburb_LOC_PID)
+  })
+  
+  observeEvent(input$melbourneMap_shape_click, {
+    # when click on
+    clicked_suburb_LOC_PID <- input$melbourneMap_shape_click$id
+    update_heatmap(clicked_suburb_LOC_PID)
+  })
+  
+  update_suburb_info <- function(selected_suburb_LOC_PID) {
+    output$suburbInfo <- renderUI({
+      if (is.null(selected_suburb_LOC_PID)) {
+        return(tags$div(""))
+      } else {
+        selected_suburb <- melbourne_suburbs[melbourne_suburbs$LOC_PID == selected_suburb_LOC_PID,]
+        return(tags$div(
+          tags$strong(selected_suburb$LOC_NAME),
+          tags$div(
+            paste0(
+              "Total number of patients: ",
+              selected_suburb$total_patients
+            )
+          ),
+          tags$div(
+            paste0(
+              "Ratio of patients: ",
+              round(selected_suburb$ratio, digits = 2)
+            )
+          ),
+          tags$div(
+            paste0("Males: ", selected_suburb$male_count),
+            tags$div(paste0(
+              "Females: ", selected_suburb$female_count
+            ))
+          ),
+        ))
+      }
+    })
+  }
+  
+  # Function to update heatmap
+  update_heatmap <- function(suburb_id) {
+  if (is.null(suburb_id)) {
+    return(NULL)
+  } else {
+    selected_suburb <- melbourne_suburbs[melbourne_suburbs$LOC_PID == suburb_id,]
+    patient_data_selected_suburb <- patient_data[patient_data$Suburb == selected_suburb$LOC_NAME,]
+
+    hm_race_survival_aggregated_data <- patient_data_selected_suburb %>%
+      dplyr::group_by(ETHNICITY, VALUE) %>%
+      tally()
+    
+
+    output$raceSurvivalPlot <- renderPlot({
+      
+      ggplot(hm_race_survival_aggregated_data,
+             aes(
+               x = ETHNICITY,
+               y = as.factor(VALUE),
+               fill = n
+             )) +
+        geom_tile() +
+        geom_text(aes(label = n), vjust = -0.3) +
+        scale_fill_gradient(low = "white",
+                            high = "red",
+                            name = "Count",
+                            labels = scales::number_format(accuracy = 1)) +
+        labs(title = "",
+             x = "Ethnicity",
+             y = "Survival") +
+        scale_y_discrete(labels=c("No", "Yes")) +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+              axis.text.y = element_text(color = "black"))
+    })
+
+    income_breaks <- c(0, 40000, 50000, 70000, 100000, 999999999)
+    income_range_labels <- c("0-30k", "30-50k", "50-70k", "70-100k", ">100k")
+    patient_data_selected_suburb$IncomeRange <- cut(patient_data_selected_suburb$INCOME, breaks = income_breaks, labels = income_range_labels, right = FALSE, include.lowest = TRUE)
+
+    hm_income_range_survival_aggregated_data <- patient_data_selected_suburb %>%
+      dplyr::group_by(IncomeRange, VALUE) %>%
+      tally()
+
+    output$incomeRangeSurvivalPlot <- renderPlot({
+      ggplot(hm_income_range_survival_aggregated_data,
+             aes(
+               x = IncomeRange,
+               y = as.factor(VALUE),
+               fill = n
+             )) +
+        geom_tile() +
+        geom_text(aes(label = n), vjust = -0.3) +
+        scale_fill_gradient(low = "white",
+                            high = "red",
+                            name = "Count",
+                            labels = scales::number_format(accuracy = 1)) +
+        labs(title = "",
+             x = "Income range",
+             y = "Survival") +
+        scale_y_discrete(labels=c("No", "Yes")) +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+              axis.text.y = element_text(color = "black"))
+    })
+
+    healthcare_expenses_breaks <- c(0, 50000, 100000, 200000, 500000, 1000000, 2000000, 999999999)
+    healthcare_expenses_labels <- c("0-50k", "50-100k", "100-200k", "200-500k", "500-1M", "1M-2M",">2M")
+    patient_data_selected_suburb$HealthcareExpensesRange <- cut(patient_data_selected_suburb$HEALTHCARE_EXPENSES, breaks = healthcare_expenses_breaks, labels = healthcare_expenses_labels, right = FALSE, include.lowest = TRUE)
+
+    hm_healthcare_expenses_survival_aggregated_data <- patient_data_selected_suburb %>%
+      dplyr::group_by(HealthcareExpensesRange, VALUE) %>%
+      tally()
+
+    output$healthcareExpensesSurvivalPlot <- renderPlot({
+      ggplot(hm_healthcare_expenses_survival_aggregated_data,
+             aes(
+               x = HealthcareExpensesRange,
+               y = as.factor(VALUE),
+               fill = n
+             )) +
+        geom_tile() +
+        geom_text(aes(label = n), vjust = -0.3) +
+        scale_fill_gradient(low = "white",
+                            high = "red",
+                            name = "Count",
+                            labels = scales::number_format(accuracy = 1)) +
+        labs(title = "",
+             x = "Healthcare expenses",
+             y = "Survival") +
+        scale_y_discrete(labels=c("No", "Yes")) +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+              axis.text.y = element_text(color = "black"))
+      })
+    }
+  }
+}
+
+shinyApp(ui, server)
+
+
+```
+
