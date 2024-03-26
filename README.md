@@ -27,6 +27,7 @@ Completed:
   2. Connect to WEHI R Shiny server and fetch data from Redcap Project using API.
 
   In Progress:
+  
   3. Data tidying and visualization based on the existing code from 1st intake (Kaplan-Meier) and 2nd intake (Geomap), add extra pie chart or bar chart if possible.
   
   4. Build R Shiny UI and Server and launch the website.
