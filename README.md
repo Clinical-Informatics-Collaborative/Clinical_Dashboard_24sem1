@@ -24,9 +24,9 @@ Completed:
 
   1. Create Redcap project, fit the generated data into redcap upload template and upload to the desired project through API. For merging and uploading data, refer to 1st intake's work [Redcap Upload](https://github.com/Clinical-Informatics-Collaborative/clinical_dashboards/tree/main/Redcap "Redcap Upload"). There are 3 project in total for demostration: 2 standard project and 1 non-standard project (with wrong column name).
 
-In Progress:
-
   2. Connect to WEHI R Shiny server and fetch data from Redcap Project using API.
+
+  In Progress:
   3. Data tidying and visualization based on the existing code from 1st intake (Kaplan-Meier) and 2nd intake (Geomap), add extra pie chart or bar chart if possible.
   4. Build R Shiny UI and Server and launch the website.
   5. If possible, figure out how to map non-standard project to correct column name so that it can show visualization.
