@@ -14,6 +14,12 @@ library(sf)
 library(ggplot2)
 library(shiny)
 library(shinydashboard)
+library(survival)
+library(survminer)
+library(ggfortify)
+library(plotly)
+library(ggsurvfit)
+library(stringr)
 ```
 
 
@@ -41,8 +47,8 @@ print(result)
 
 
 ```{r}
-#data <- result
-data <- read.csv("data/insert_dataset.csv")
+data <- result
+#data <- read.csv("data/insert_dataset.csv") #local dataset for test
 
 # Fill NA values in 'redcap_repeat_instrument' column with "patient"
 data$redcap_repeat_instrument <- ifelse(is.na(data$redcap_repeat_instrument) | data$redcap_repeat_instrument == "", "patient", data$redcap_repeat_instrument)
@@ -58,23 +64,26 @@ df_medication <- df_list[["medications"]]
 
 
 ```{r}
-df_patient
+df_medication
+
 ```
 
 ```{r}
-#choose a condition
-observe_condition <- "Ischemic heart disease (disorder)"
+#choose a condition (the most popular one)
+observe_condition <- names(table(df_condition$description_condition))[which.max(table(df_condition$description_condition))]
 all_patient <- nrow(df_patient)
 
 #check whether patient is a survivor
-df_patient$survivor <- ifelse(is.na(df_patient$deathdate_patient) | df_patient$deathdate_patient == "", 0, 1)
+df_patient$survivor <- ifelse(is.na(df_patient$deathdate_patient) , 0, 1)
+#df_patient$survivor <- ifelse(df_patient$deathdate_patient == "", 0, 1) #for local database
 
-#
+#shorten the name for ethnicity
 df_patient <- mutate(df_patient, ethnicity_patient = ifelse(ethnicity_patient == "Aboriginal and Torres Strait Islander", "Aboriginal", ethnicity_patient))
+
 
 ```
 
-create a data frame for Geo map.
+create a dataframe for Geo map.
 ```{r}
 #filter out the required column for geo map
 geo_column <- c("Id","ZIP","RACE","GENDER","ETHNICITY","INCOME","HEALTHCARE_EXPENSES","HEALTHCARE_COVERAGE","CONDITION","OBSERVED_CONDITION","VALUE","Suburb")
@@ -86,7 +95,82 @@ geo_data <- df_patient %>%
 geo_data
 ```
 
+create a dataframe for Kaplan Meier
+```{r}
+#filter out the required column for Kaplan Meier
+km_data_patient <- df_patient %>%
+  select(Id = id_patient, end_date = deathdate_patient, Status = survivor)
 
+km_data_condition <- df_condition %>%
+  select(Id = id_patient, condition = description_condition, start_date = start_condition)
+
+km_data_medication <- df_medication %>%
+  select(Id = id_patient, group = description_medication)
+
+km_data <- km_data_patient %>%
+  left_join(km_data_condition, by = "Id") %>%
+  left_join(km_data_medication, by = "Id")
+
+km_data
+#fill missing end_date to today
+km_data$end_date[is.na(km_data$end_date)] <- Sys.Date()
+
+#calculate survive days by end_date - start_date and assign it to a new column called Times
+km_data$Time <- as.integer(km_data$end_date - km_data$start_date)
+
+#filter out two group for comperation
+drugs_of_interest <- c("Nitroglycerin 0.4 MG/ACTUAT Mucosal Spray", "lisinopril 10 MG Oral Tablet", "24 HR metoprolol succinate 100 MG Extended Release Oral Tablet")
+filtered_km_data <- km_data[km_data$group %in% drugs_of_interest, ]
+
+#drop repeat info and those Time is negative (dates are entered incorrectly)
+filtered_km_data <- unique(filtered_km_data)
+filtered_km_data <- filtered_km_data[filtered_km_data$Time >= 0, ]
+
+filtered_km_data
+```
+
+```{r}
+
+get_kaplan_meier_plot1 <- function(data, time_unit = "Day") {
+  if (time_unit == "Year") {
+    data$Time <- data$Time / 365.25  # Convert days to years
+  } else if (time_unit == "Month") {
+    data$Time <- data$Time / 30.44  # Convert days to months
+  }
+  
+  data = data.frame(Time = data$Time, Status = data$Status,group = data$group)
+  km_fit <- surv_fit(Surv(Time, Status) ~ group, data=data)
+  # if there is exactly two group then we can use the logrank test 
+  whetherlogranktest = (length(unique(data$group))==2)
+  pvalue_text = ""
+  if(whetherlogranktest){
+    pvalue = toString(round(survdiff(Surv(Time, Status) ~ group, data=data)$pvalue,8))
+    pvalue_text = paste0("logrank pvalue: \n ",pvalue)
+  }
+  
+  p = autoplot(km_fit, censor.shape = "+", censor.alpha = 0) + 
+   labs(x = paste("\n Survival Time in", time_unit) , y = "Survival Probabilities \n", 
+   title = "Kaplan Meier plot") + 
+   ylim(0, 1) +
+    annotate("text", x=max(data$Time)/5, y=0, label= pvalue_text)+
+
+   theme(plot.title = element_text(face="bold",hjust = 0.5), 
+   axis.title.x = element_text(face="bold", colour="darkgreen", size = 11),
+   axis.title.y = element_text(face="bold", colour="darkgreen", size = 11),
+   legend.title = element_text(face="bold", size = 10))+
+    scale_color_viridis_d()
+
+  
+  # ggplot do not developed for CI
+  ggplotly(p)
+}
+  
+time_unit = 'Year'
+get_kaplan_meier_plot1(filtered_km_data,time_unit)
+```
+
+
+Geomap
 ```{r}
 melbourne_suburbs_name <- c(
   "Carlton", "Carlton North", "Docklands", "East Melbourne",
@@ -101,7 +185,7 @@ melbourne_suburbs_name <- c(
 melbourne_suburbs <- st_read("data/sf/vic_localities.shp")
 
 melbourne_suburbs <- melbourne_suburbs[melbourne_suburbs$LOC_NAME
-                                        %in% melbourne_suburbs_name, ]
+                                        %in% melbourne_suburbs_name, ] #only look at melbourne county
 
 patient_data <- geo_data
 
@@ -117,56 +201,46 @@ agg_data <- patient_data %>%
 melbourne_suburbs <- left_join(melbourne_suburbs, agg_data,
                                by = c("LOC_NAME" = "Suburb"))
 
-bins <- seq(0, 100, by = 10)
+bins <- seq(0, all_patient / 10, by = 10)
+
 pal <-
-  colorBin("YlOrRd", domain = melbourne_suburbs$total_patients, bins = bins)
-
-
+  colorBin("YlGn", domain = melbourne_suburbs$total_patients, bins = bins)
 ```
 
 ```{r}
 ui <- dashboardPage(
-  dashboardHeader(title = "Basic dashboard"),
+  skin = "purple",
+  dashboardHeader(title = "Clinical Dashboard"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Map", tabName = "map"),
-      menuItem("Suburb Information", tabName = "suburb_info"),
-      menuItem("Race-Survival Heatmap", tabName = "race_survival_heatmap"),
-      menuItem("Income-Survival Heatmap", tabName = "income_survival_heatmap"),
-      menuItem("Healthcare Expenses-Survival Heatmap", tabName = "healthcare_expenses_heatmap")
+      menuItem("Map & Suburb Info", tabName = "map_suburb_info"),
+      menuItem("Kaplan-Meier Plot", tabName = "km_plot")
     )
   ),
   dashboardBody(
     tabItems(
-      tabItem(tabName = "map",
-              leafletOutput("melbourneMap")),
-      
-      # Suburb Information tab content
-      tabItem(tabName = "suburb_info",
-              fluidRow(
-                box(
-                  title = "Suburb Information",
-                  solidHeader = TRUE,
-                  status = "info",
-                  width = 12,
-                  uiOutput("suburbInfo")
-                )
-              )),
-      
-      # Race-Survival Heatmap tab content
-      tabItem(tabName = "race_survival_heatmap",
-              plotOutput("raceSurvivalPlot")),
-      
-      # Income-Survival Heatmap tab content
-      tabItem(tabName = "income_survival_heatmap",
-              plotOutput("incomeRangeSurvivalPlot")),
-      
-      # Healthcare Expenses-Survival Heatmap tab content
-      tabItem(tabName = "healthcare_expenses_heatmap",
-              plotOutput("healthcareExpensesSurvivalPlot"))
+      tabItem(tabName = "map_suburb_info",
+        leafletOutput("melbourneMap"), # This map stays up always
+        tabsetPanel(
+          tabPanel("Suburb Info", uiOutput("suburbInfo")), # Info displays here
+          tabPanel("Local Heatmaps",  # Heatmaps related to the selected area
+            fluidRow(
+              column(width = 4, plotOutput("raceSurvivalPlot")),
+              column(width = 4, plotOutput("incomeRangeSurvivalPlot")),
+              column(width = 4, plotOutput("healthcareExpensesSurvivalPlot"))
+            )
+          )
+        )
+      ),
+      tabItem(tabName = "km_plot",
+        fluidRow(
+          plotlyOutput("kmPlot")
+        )
+      )
     )
   )
 )
+
 
 server <- function(input, output, session) {
   output$melbourneMap <- renderLeaflet({
@@ -215,6 +289,18 @@ server <- function(input, output, session) {
     update_heatmap(clicked_suburb_LOC_PID)
   })
   
+  # Reactive values to manage data filtering
+  filtered_data <- reactive({
+    filtered_km_data 
+  })
+  
+  # Rendering the Kaplan-Meier plot
+  output$kmPlot <- renderPlotly({
+    # Use the reactive filtered_data
+    plot_data <- filtered_data()
+    get_kaplan_meier_plot1(plot_data, 'Year')
+  })
+  
   update_suburb_info <- function(selected_suburb_LOC_PID) {
     output$suburbInfo <- renderUI({
       if (is.null(selected_suburb_LOC_PID)) {
@@ -222,28 +308,28 @@ server <- function(input, output, session) {
       } else {
         selected_suburb <- melbourne_suburbs[melbourne_suburbs$LOC_PID == selected_suburb_LOC_PID,]
         return(tags$div(
-          tags$strong(selected_suburb$LOC_NAME),
+          tags$strong(selected_suburb$LOC_NAME, style = "font-size: 20px;"),
           tags$div(
             paste0(
-              "Total number of patients: ",
-              selected_suburb$total_patients
-            )
+              "Total number of patients: ", selected_suburb$total_patients),
+            style = "font-size: 16px;"
           ),
           tags$div(
-            paste0(
-              "Ratio of patients: ",
-              round(selected_suburb$ratio, digits = 2)
-            )
+            paste0("Raito of patients: ", selected_suburb$ratio),
+            style = "font-size: 16px;"
+          ),
+          tags$div(
+            paste0("Females: ", selected_suburb$female_count),
+            style = "font-size: 16px;"
           ),
           tags$div(
             paste0("Males: ", selected_suburb$male_count),
-            tags$div(paste0(
-              "Females: ", selected_suburb$female_count
-            ))
+            style = "font-size: 16px;"
           ),
-        ))
-      }
-    })
+          style = "line-height: 1.5;" 
+      ))
+    }
+  })
   }
   
   # Function to update heatmap
@@ -269,16 +355,18 @@ server <- function(input, output, session) {
              )) +
         geom_tile() +
         geom_text(aes(label = n), vjust = -0.3) +
-        scale_fill_gradient(low = "white",
-                            high = "red",
+        scale_fill_gradient(low = "#CAE1FF",
+                            high = "slateblue4",
                             name = "Count",
                             labels = scales::number_format(accuracy = 1)) +
-        labs(title = "",
+        labs(title = "Race vs. Survival Heatmap",
              x = "Ethnicity",
              y = "Survival") +
         scale_y_discrete(labels=c("No", "Yes")) +
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-              axis.text.y = element_text(color = "black"))
+        theme(
+          plot.title = element_text(face="bold"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5),
+          axis.text.y = element_text(color = "black"))
     })
 
     income_breaks <- c(0, 40000, 50000, 70000, 100000, 999999999)
@@ -298,16 +386,18 @@ server <- function(input, output, session) {
              )) +
         geom_tile() +
         geom_text(aes(label = n), vjust = -0.3) +
-        scale_fill_gradient(low = "white",
-                            high = "red",
+        scale_fill_gradient(low = "#CAE1FF",
+                            high = "slateblue4",
                             name = "Count",
                             labels = scales::number_format(accuracy = 1)) +
-        labs(title = "",
+        labs(title = "Income Range vs. Survival Heatmap",
              x = "Income range",
              y = "Survival") +
         scale_y_discrete(labels=c("No", "Yes")) +
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-              axis.text.y = element_text(color = "black"))
+        theme(
+          plot.title = element_text(face="bold"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5),
+          axis.text.y = element_text(color = "black"))
     })
 
     healthcare_expenses_breaks <- c(0, 50000, 100000, 200000, 500000, 1000000, 2000000, 999999999)
@@ -327,16 +417,18 @@ server <- function(input, output, session) {
              )) +
         geom_tile() +
         geom_text(aes(label = n), vjust = -0.3) +
-        scale_fill_gradient(low = "white",
-                            high = "red",
+        scale_fill_gradient(low = "#CAE1FF",
+                            high = "slateblue4",
                             name = "Count",
                             labels = scales::number_format(accuracy = 1)) +
-        labs(title = "",
+        labs(title = "Healthcare Expenses vs. Survival Heatmap",
              x = "Healthcare expenses",
              y = "Survival") +
         scale_y_discrete(labels=c("No", "Yes")) +
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-              axis.text.y = element_text(color = "black"))
+        theme(
+          plot.title = element_text(face="bold"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5),
+          axis.text.y = element_text(color = "black"))
       })
     }
   }
