@@ -1,12 +1,16 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    https://shiny.posit.co/
-#
+---
+title: "Untitled"
+author: "Suhe Li"
+date: "2024-04-19"
+output: html_document
+---
+```{r}
 
+```
+
+
+
+```{r}
 #install packages and library
 library(forcats)
 library(tidyr)
@@ -23,12 +27,18 @@ library(ggfortify)
 library(plotly)
 library(ggsurvfit)
 library(stringr)
+```
 
+
+```{r}
 #read local database
 heart_disease_data <- read.csv("data/heart_disease_data.csv")
 diabetes_data <- read.csv("data/diabetes_data.csv")
 non_standard_data <- read.csv("data/non_standard_data.csv")
+```
 
+
+```{r}
 #setup requirements for geomap
 melbourne_suburbs_name <- c(
   "Carlton", "Carlton North", "Docklands", "East Melbourne",
@@ -44,7 +54,8 @@ melbourne_suburbs <- st_read("data/sf/vic_localities.shp")
 
 melbourne_suburbs <- melbourne_suburbs[melbourne_suburbs$LOC_NAME
                                        %in% melbourne_suburbs_name, ] #enable this line to view only melbourne county
-
+```
+```{r}
 #function to tidyup csv and return 3 dataframes for visualization: geomap_data, km_data, and info_data
 get_tidy_dataframe <- function(data) {
   #1. split combined csv into three separated df: patient, condition, medication.
@@ -62,7 +73,7 @@ get_tidy_dataframe <- function(data) {
   observe_condition <- names(table(df_condition$description_condition))[which.max(table(df_condition$description_condition))]
   
   #check whether patient is a survivor
-  df_patient$survivor <- ifelse(df_patient$deathdate_patient == "", 0, 1) 
+  df_patient$survivor <- ifelse(is.na(df_patient$deathdate_patient) , 0, 1) 
   
   #shorten the name for ethnicity
   df_patient <- df_patient %>%
@@ -76,36 +87,37 @@ get_tidy_dataframe <- function(data) {
   total_medication_record <- nrow(df_medication)
   
   #2. filter out the required column for geo map
-  # Intended structure of geo_data
+# Create an empty DataFrame for df_geo_data
+# Intended structure of df_geo_data
   match_data <- data.frame(
-    Id = character(),
-    RACE = character(),
-    GENDER = character(),
-    ETHNICITY = character(),
-    INCOME = numeric(),
-    HEALTHCARE_EXPENSES = numeric(),
-    HEALTHCARE_COVERAGE = numeric(),
-    Suburb = character(),
-    VALUE = numeric(),
-    stringsAsFactors = FALSE
-  )
-  
+  Id = character(),
+  RACE = character(),
+  GENDER = character(),
+  ETHNICITY = character(),
+  INCOME = numeric(),
+  HEALTHCARE_EXPENSES = numeric(),
+  HEALTHCARE_COVERAGE = numeric(),
+  Suburb = character(),
+  VALUE = numeric(),
+  stringsAsFactors = FALSE
+ )
+
   column_mapping <- c(
-    id_patient = "Id",
-    race_patient = "RACE",
-    gender_patient = "GENDER",
-    ethnicity_patient = "ETHNICITY",
-    income_patient = "INCOME",
-    healthcare_expenses_patient = "HEALTHCARE_EXPENSES",
-    healthcare_coverage_patient = "HEALTHCARE_COVERAGE",
-    county_patient = "Suburb",
-    survivor = "VALUE"
+  id_patient = "Id",
+  race_patient = "RACE",
+  gender_patient = "GENDER",
+  ethnicity_patient = "ETHNICITY",
+  income_patient = "INCOME",
+  healthcare_expenses_patient = "HEALTHCARE_EXPENSES",
+  healthcare_coverage_patient = "HEALTHCARE_COVERAGE",
+  county_patient = "Suburb",
+  survivor = "VALUE"
   )
   
   geo_data <- df_patient %>%
     select(any_of(names(column_mapping))) %>%
     rename_all(~ column_mapping[.])
-  
+
   # Add missing columns with all NA values
   missing_columns <- setdiff(names(match_data), names(geo_data))
   for (col in missing_columns) {
@@ -124,25 +136,20 @@ get_tidy_dataframe <- function(data) {
     select(Id = id_patient, group = description_medication)
   
   km_data <- km_data_patient %>%
-    full_join(km_data_condition, by = "Id", relationship =
-                "many-to-many") %>%
-    full_join(km_data_medication, by = "Id", relationship =
-                "many-to-many")
-  
-  #fill missing end_date to today
-  km_data$end_date[is.na(km_data$end_date)] <- format(Sys.Date(), format = "%Y-%m-%d")
-  
+    full_join(km_data_condition, by = "Id", relationship = "many-to-many") %>% ###
+    full_join(km_data_medication, by = "Id", relationship = "many-to-many") ###
+
+  km_data$end_date[is.na(km_data$end_date)] <- format(Sys.Date(), format = "%Y-%m-%d") ###
+
   #calculate survive days by end_date - start_date and assign it to a new column called Times
   km_data$start_date <- as.Date(km_data$start_date, format = "%Y-%m-%d")
   km_data$end_date <- as.Date(km_data$end_date, format = "%Y-%m-%d")
   km_data$Time <- as.integer(km_data$end_date - km_data$start_date)
-  
-  #filter out two most common group for comperation
+
   sorted_km_data <- sort(table(km_data$group), decreasing = TRUE)
   drugs_of_interest <- names(sorted_km_data)[1:2]
   filtered_km_data <- km_data[km_data$group %in% drugs_of_interest, ]
-  
-  #drop repeat info and those Time is negative (dates are entered incorrectly)
+
   filtered_km_data <- unique(filtered_km_data)
   filtered_km_data <- filtered_km_data[filtered_km_data$Time >= 0, ]
   
@@ -156,7 +163,14 @@ get_tidy_dataframe <- function(data) {
   )
   return(list(geo_data = geo_data, km_data = filtered_km_data, info_df = info_df))
 }
+```
 
+```{r}
+get_tidy_dataframe(non_standard_data)
+```
+
+
+```{r}
 #function to get kaplan meier plot
 get_kaplan_meier_plot <- function(data, time_unit = "Day") {
   if (time_unit == "Year") {
@@ -191,9 +205,25 @@ get_kaplan_meier_plot <- function(data, time_unit = "Day") {
   # ggplot do not developed for CI
   ggplotly(p)
 }
+```
+
+```{r}
+#load local data
+geo_data1 <- get_tidy_dataframe(heart_disease_data)$geo_data
+km_data1 <- get_tidy_dataframe(heart_disease_data)$km_data
+info_df1 <- get_tidy_dataframe(heart_disease_data)$info_df
+
+geo_data2 <- get_tidy_dataframe(diabetes_data)$geo_data
+km_data2 <- get_tidy_dataframe(diabetes_data)$km_data
+info_df2 <- get_tidy_dataframe(diabetes_data)$info_df
+```
+
+```{r}
+get_kaplan_meier_plot(km_data1, "Year")
+```
 
 
-
+```{r}
 # Define UI for application
 ui <- dashboardPage(
   skin = "purple",
@@ -206,69 +236,41 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
-    tags$head(tags$style(HTML("
-    /* CSS styles to apply globally */
-    p{
-      margin-bottom: 5px;
-    }"))),
     tabItems(
       tabItem(tabName = "welcome",
-              fluidRow(tags$div(tags$strong("Welcome!"), style = "font-size: 22px;")),
-              fluidRow(HTML(r"(
-                            <p style="font-size:16px;">This is a Clinical Dashboard offers multiple interactive visualizations.</p>
-                            <p style="font-size:16px;">By inputing a standard RedCap project's API, this dashboard automatically generate mutiple visualization to provide user a better understanding of the studied disease.</p>
-                            <p style="font-size:16px;">Currently, it allows user to view disease distribution by suburb through a interactive map that supports Melbourne and entire Victora region. 
-                            It also provides a Kaplan-Meier Plot that compare the effects of most commonly used two medicine on patient's death rate.</p>
-                            <p style="font-size:16px;">You can preview its effect by selecting three defaultly provided database. You can find the original RedCap through link below.
-                            Notice that all of these database use stimulated data generated from <a href="https://github.com/synthetichealth/synthea" target="_blank">Synthea<sup>TM</sup></a>, a synthetic patient generator that models the medical history of synthetic patients, for testing purpose.</p>
-                            <br></br>
-                            <p style="font-size:16px;"><b>Hyperlink to database</b>:</p>
-                            <p style="font-size:16px;"><a href="https://redcap.wehi.edu.au/redcap_v14.1.5/ProjectSetup/index.php?pid=658" target="_blank">TEST Ischemic heart disease in melbourne</a></p>
-                            <p style="font-size:16px;"><a href="https://redcap.wehi.edu.au/redcap_v14.1.5/ProjectSetup/index.php?pid=656" target="_blank">TEST diabetes in melbourne</a></p>
-                            <p style="font-size:16px;"><a href="https://redcap.wehi.edu.au/redcap_v14.1.5/ProjectSetup/index.php?pid=657" target="_blank">TEST Non-standard Dataset</a></p>
-                            <br></br>
-                            )")),
               fluidRow(
-                box(status = "primary", selectInput("databaseSelect", "Select Database to Preview", 
-                                   choices = c("Ischemic Heart Disease in Melbourne", "Diabetes in Melbourne", "Non-Standard Database"))
+                column(width = 6, offset = 3,
+                       selectInput("databaseSelect", "Select Database", 
+                                   choices = c("Ischemic Heart Disease in Melbourne", "Diabetes in Melbourne"))
                 )
               )
       ),
       tabItem(tabName = "map_suburb_info",
               fluidRow(
-                tags$div(tags$strong("Interactive Map for", textOutput("databaseName1", inline = TRUE)), style = "font-size: 22px;")
+                tags$div(class = "inline", tags$strong("Interactive Map for ", uiOutput("databaseName"), style = "font-size: 20px;"))
               ),    
-              leafletOutput("melbourneMap"),
+              leafletOutput("melbourneMap"), # This map stays up always
               tabsetPanel(
                 tabPanel("Suburb Info", 
-                         fluidRow(box(status = "primary", uiOutput("suburbInfo"))),
-                         fluidRow(HTML(r"(<p>Hover on to preview suburb, click on to select suburb.</p>)"))), 
+                         fluidRow(box(title = "Hint", width = 4, status = "warning", collapsible = TRUE, "Hover on to preview suburb, click on to select suburb.")),
+                         fluidRow(box(status = "primary", uiOutput("suburbInfo")))), 
                 tabPanel("Local Heatmaps",
                          fluidRow(uiOutput("suburbNameHeatmap")),
                          fluidRow(
                            column(width = 4, plotOutput("raceSurvivalPlot")),
                            column(width = 4, plotOutput("incomeRangeSurvivalPlot")),
                            column(width = 4, plotOutput("healthcareExpensesSurvivalPlot"))),
-                         fluidRow(HTML(r"(
-                     <p><b>Note</b>:</p>
-                     <p><b>Ethnicity</b>: Individuals are categorized as either "Aboriginal and Torres Strait Islander" or "Others".</p>
-                     <p><b>Income</b>: Income levels are grouped into the following bins: "0-30k", "30-50k", "50-70k", "70-100k", and ">100k".</p>
-                     <p><b>Healthcare Expenses</b>: Healthcare expenses are categorized into the following bins: "0-50k", "50-100k", "100-200k", "200-500k", "500k-1M", "1M-2M", and ">2M".</p>
-                     )"))
+                         fluidRow( HTML(r"(
+                     <br><b>Ethnicity</b>: Individuals are categorized as either "Aboriginal and Torres Strait Islander" or "Others".</br>
+                     <br><b>Income</b>: Income levels are grouped into the following bins: "0-30k", "30-50k", "50-70k", "70-100k", and ">100k".</br>
+                     <br><b>Healthcare Expenses</b>: Healthcare expenses are categorized into the following bins: "0-50k", "50-100k", "100-200k", "200-500k", "500k-1M", "1M-2M", and ">2M".</br>
+                     )")
+                         )
                 )
               )
       ),
-      tabItem(tabName = "km_plot", 
-              fluidRow(
-                tags$div(tags$strong("Interactive Kaplan-Meier Plot for", textOutput("databaseName2", inline = TRUE)), style = "font-size: 22px;")
-              ),
-              plotlyOutput("kmPlot"),
-              fluidRow(HTML(r"(
-              <p><b>Note</b>:</p>
-              <p>The Kaplan-Meier Plot displayed above utilizes "Year" as its time unit.</p>
-              <p>The logrank p-value indicates whether there is a statistically significant difference in survival curves between the groups being compared. If the p-value is less than 0.05, it suggests that there is a statistically significant difference in survival between the groups. 
-If the p-value is greater than or equal to 0.05, it suggests that there is no statistically significant difference in survival between the groups.</p>
-                            )"))
+      tabItem(tabName = "km_plot",
+              fluidRow(plotlyOutput("kmPlot"))
       )
     )
   )
@@ -278,40 +280,23 @@ If the p-value is greater than or equal to 0.05, it suggests that there is no st
 
 # Define server logic
 server <- function(input, output, session) {
-  
-  #load local data
-  geo_data1 <- get_tidy_dataframe(heart_disease_data)$geo_data
-  km_data1 <- get_tidy_dataframe(heart_disease_data)$km_data
-  info_df1 <- get_tidy_dataframe(heart_disease_data)$info_df
-  
-  geo_data2 <- get_tidy_dataframe(diabetes_data)$geo_data
-  km_data2 <- get_tidy_dataframe(diabetes_data)$km_data
-  info_df2 <- get_tidy_dataframe(diabetes_data)$info_df
-  
-  geo_data3 <- get_tidy_dataframe(non_standard_data)$geo_data
-  km_data3 <- get_tidy_dataframe(non_standard_data)$km_data
-  info_df3 <- get_tidy_dataframe(non_standard_data)$info_df
-  
   # Reactive values to manage data filtering
   filtered_data <- reactive({
     switch(input$databaseSelect,
            "Ischemic Heart Disease in Melbourne" = km_data1,
-           "Diabetes in Melbourne" = km_data2,
-           "Non-Standard Database" = km_data3)
+           "Diabetes in Melbourne" = km_data2)
   })
   
   patient_data <- reactive({
     switch(input$databaseSelect,
            "Ischemic Heart Disease in Melbourne" = geo_data1,
-           "Diabetes in Melbourne" = geo_data2,
-           "Non-Standard Database" = geo_data3)
+           "Diabetes in Melbourne" = geo_data2)
   })
   
   info_df <- reactive({
     switch(input$databaseSelect,
            "Ischemic Heart Disease in Melbourne" = info_df1,
-           "Diabetes in Melbourne" = info_df2,
-           "Non-Standard Database" = info_df3)
+           "Diabetes in Melbourne" = info_df2)
   })
 
   # Extracting condition from info_df reactive object
@@ -325,42 +310,43 @@ server <- function(input, output, session) {
     info_df()$total_patient
   })
   
-  melbourne_suburbs <- melbourne_suburbs
-  
   # Make agg_data a reactive expression
   agg_data <- reactive({
-    patient_data() %>%
+    patient_data <- patient_data()
+    if (is.null(patient_data())) {
+      return(data.frame())  # Return an empty data frame if patient_data is NULL
+    }
+    patient_data %>%
       group_by(Suburb) %>%
       summarize(
-        all_patients = n(),
+        total_patients = n(),
         male_count = sum(GENDER == "1"),
         female_count = sum(GENDER == "2"),
-        ratio = all_patients / total_patient()
+        ratio = total_patients / info_df()$total_patient,  # Ensure total_patient is defined somewhere
       )
   })
+  
+  # Assuming you have an output to display the data:
+  output$someOutputId <- renderTable({
+    agg_data()  # Use the reactive value by calling it like a function
+  })
+  
   # Join the data with melbourne_suburbs inside a reactive expression
   melbourne_suburbs_data <- reactive({
-    left_join(melbourne_suburbs, agg_data(), by = c("LOC_NAME" = "Suburb"))
+    agg_data <- agg_data()  # Get the latest aggregated data
+    left_join(melbourne_suburbs, agg_data, by = c("LOC_NAME" = "Suburb"))
   })
 
   #output
-  output$databaseName1 <- renderText({
-    condition()
-  })
-  
-  output$databaseName2 <- renderText({
-    condition()
-  })
-  
   output$melbourneMap <- renderLeaflet({
-    bins <- seq(0, total_patient() / 10, by = 10)
-    pal <- colorBin("YlGn", domain = melbourne_suburbs_data()$all_patients, bins = bins)
+    bins <- seq(0, as.numeric(total_patient) / 10, by = 10)
+    pal <- colorBin("YlGn", domain = melbourne_suburbs_data()$total_patients, bins = bins)
     
-    leaflet(data = melbourne_suburbs_data()) %>%
+    leaflet(data = melbourne_suburbs) %>%
       addProviderTiles("CartoDB.Positron") %>%
       addPolygons(
         layerId = ~ LOC_PID,
-        fillColor = ~ pal(all_patients),
+        fillColor = ~ pal(total_patients),
         weight = 2,
         opacity = 1,
         color = "white",
@@ -382,7 +368,7 @@ server <- function(input, output, session) {
       ) %>%
       addLegend(
         pal = pal,
-        values = ~ all_patients,
+        values = ~ total_patients,
         opacity = 0.7,
         title = "Number of patients",
         position = "bottomright"
@@ -401,6 +387,10 @@ server <- function(input, output, session) {
     update_heatmap(clicked_suburb_LOC_PID)
   })
   
+  output$databaseName <- renderUI({
+    lapply(condition(), function(x) x)
+  })
+  
   # Rendering the Kaplan-Meier plot
   output$kmPlot <- renderPlotly({
     # Use the reactive filtered_data
@@ -410,11 +400,22 @@ server <- function(input, output, session) {
   
   
   update_suburb_info <- function(selected_suburb_LOC_PID) {
+    output$suburbNameHeatmap <- renderUI({
+      if (is.null(selected_suburb_LOC_PID)) {
+        return(tags$div("Select one suburb to view heatmaps.", style = "font-size: 20px;"))
+      } else {
+        selected_suburb <- melbourne_suburbs[melbourne_suburbs$LOC_PID == selected_suburb_LOC_PID,]
+        return(tags$div(
+          tags$strong(
+            "Heatmaps for ", selected_suburb$LOC_NAME, style = "font-size: 20px;")
+        ))
+      }
+    })
     output$suburbInfo <- renderUI({
       if (is.null(selected_suburb_LOC_PID)) {
         return(tags$div(""))
       } else {
-        selected_suburb <- melbourne_suburbs_data()[melbourne_suburbs_data()$LOC_PID == selected_suburb_LOC_PID,]
+        selected_suburb <- melbourne_suburbs[melbourne_suburbs$LOC_PID == selected_suburb_LOC_PID,]
         return(tags$div(
           tags$strong(selected_suburb$LOC_NAME, style = "font-size: 20px;"),
           tags$div(
@@ -442,22 +443,10 @@ server <- function(input, output, session) {
   
   # Function to update heatmap
   update_heatmap <- function(suburb_id) {
-    output$suburbNameHeatmap <- renderUI({
-      if (is.null(suburb_id)) {
-        return(HTML(r"(Select one suburb to view heatmaps.)"))
-      } else {
-        selected_suburb <- melbourne_suburbs_data()[melbourne_suburbs_data()$LOC_PID == suburb_id,]
-        return(tags$div(
-          tags$strong(
-            "Heatmaps for ", selected_suburb$LOC_NAME, style = "font-size: 20px;")
-        ))
-      }
-    })
-    
     if (is.null(suburb_id)) {
       return(NULL)
     } else {
-      selected_suburb <- melbourne_suburbs_data()[melbourne_suburbs_data()$LOC_PID == suburb_id,]
+      selected_suburb <- melbourne_suburbs[melbourne_suburbs$LOC_PID == suburb_id,]
       patient_data_selected_suburb <- patient_data()[patient_data()$Suburb == selected_suburb$LOC_NAME,]
       
       hm_race_survival_aggregated_data <- patient_data_selected_suburb %>%
@@ -556,3 +545,11 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+```
+
+
+
+
+
+```
+
