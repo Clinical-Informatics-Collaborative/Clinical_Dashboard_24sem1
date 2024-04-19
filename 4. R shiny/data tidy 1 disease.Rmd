@@ -118,8 +118,9 @@ km_data$end_date[is.na(km_data$end_date)] <- Sys.Date()
 #calculate survive days by end_date - start_date and assign it to a new column called Times
 km_data$Time <- as.integer(km_data$end_date - km_data$start_date)
 
-#filter out two group for comperation
-drugs_of_interest <- c("Nitroglycerin 0.4 MG/ACTUAT Mucosal Spray", "lisinopril 10 MG Oral Tablet", "24 HR metoprolol succinate 100 MG Extended Release Oral Tablet")
+#filter out two most common group for comperation
+sorted_km_data <- sort(table(km_data$group), decreasing = TRUE)
+drugs_of_interest <- names(sorted_km_data)[1:2]
 filtered_km_data <- km_data[km_data$group %in% drugs_of_interest, ]
 
 #drop repeat info and those Time is negative (dates are entered incorrectly)
@@ -150,7 +151,7 @@ get_kaplan_meier_plot1 <- function(data, time_unit = "Day") {
   
   p = autoplot(km_fit, censor.shape = "+", censor.alpha = 0) + 
    labs(x = paste("\n Survival Time in", time_unit) , y = "Survival Probabilities \n", 
-   title = "Kaplan Meier plot") + 
+   title = paste("Kaplan Meier plot for", observe_condition)) + 
    ylim(0, 1) +
     annotate("text", x=max(data$Time)/5, y=0, label= pvalue_text)+
 
@@ -213,34 +214,42 @@ ui <- dashboardPage(
   dashboardHeader(title = "Clinical Dashboard"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Map & Suburb Info", tabName = "map_suburb_info"),
-      menuItem("Kaplan-Meier Plot", tabName = "km_plot")
+      menuItem("Map & Suburb Info", tabName = "map_suburb_info", icon = icon("dashboard")),
+      menuItem("Kaplan-Meier Plot", tabName = "km_plot", icon = icon("th"))
     )
   ),
   dashboardBody(
     tabItems(
       tabItem(tabName = "map_suburb_info",
-        leafletOutput("melbourneMap"), # This map stays up always
-        tabsetPanel(
-          tabPanel("Suburb Info", uiOutput("suburbInfo")), # Info displays here
-          tabPanel("Local Heatmaps",  # Heatmaps related to the selected area
-            fluidRow(
-              column(width = 4, plotOutput("raceSurvivalPlot")),
-              column(width = 4, plotOutput("incomeRangeSurvivalPlot")),
-              column(width = 4, plotOutput("healthcareExpensesSurvivalPlot"))
-            )
+          fluidRow(
+            tags$div(class = "inline", tags$strong("Interactive Map for ", uiOutput("databaseName"), style = "font-size: 20px;"))
+            ),    
+          leafletOutput("melbourneMap"), # This map stays up always
+          tabsetPanel(
+          tabPanel("Suburb Info", 
+                   fluidRow(box(title = "Hint", width = 4, status = "warning", collapsible = TRUE, "Hover on to preview suburb, click on to select suburb.")),
+                   fluidRow(box(status = "primary", uiOutput("suburbInfo")))), 
+          tabPanel("Local Heatmaps",
+                   fluidRow(uiOutput("suburbNameHeatmap")),
+                   fluidRow(
+                     column(width = 4, plotOutput("raceSurvivalPlot")),
+                     column(width = 4, plotOutput("incomeRangeSurvivalPlot")),
+                     column(width = 4, plotOutput("healthcareExpensesSurvivalPlot"))),
+                   fluidRow( HTML(r"(
+                     <br><b>Ethnicity</b>: Individuals are categorized as either "Aboriginal and Torres Strait Islander" or "Others".</br>
+                     <br><b>Income</b>: Income levels are grouped into the following bins: "0-30k", "30-50k", "50-70k", "70-100k", and ">100k".</br>
+                     <br><b>Healthcare Expenses</b>: Healthcare expenses are categorized into the following bins: "0-50k", "50-100k", "100-200k", "200-500k", "500k-1M", "1M-2M", and ">2M".</br>
+                     )")
+                   )
           )
         )
       ),
       tabItem(tabName = "km_plot",
-        fluidRow(
-          plotlyOutput("kmPlot")
-        )
+          fluidRow(plotlyOutput("kmPlot"))
       )
     )
   )
 )
-
 
 server <- function(input, output, session) {
   output$melbourneMap <- renderLeaflet({
@@ -293,6 +302,11 @@ server <- function(input, output, session) {
   filtered_data <- reactive({
     filtered_km_data 
   })
+  condition <- observe_condition
+  
+  output$databaseName <- renderUI({
+    return(condition)
+    })
   
   # Rendering the Kaplan-Meier plot
   output$kmPlot <- renderPlotly({
@@ -300,8 +314,20 @@ server <- function(input, output, session) {
     plot_data <- filtered_data()
     get_kaplan_meier_plot1(plot_data, 'Year')
   })
-  
+
+
   update_suburb_info <- function(selected_suburb_LOC_PID) {
+    output$suburbNameHeatmap <- renderUI({
+      if (is.null(selected_suburb_LOC_PID)) {
+        return(tags$div("Select one suburb to view heatmaps.", style = "font-size: 20px;"))
+      } else {
+        selected_suburb <- melbourne_suburbs[melbourne_suburbs$LOC_PID == selected_suburb_LOC_PID,]
+        return(tags$div(
+          tags$strong(
+            "Heatmaps for ", selected_suburb$LOC_NAME, style = "font-size: 20px;")
+        ))
+      }
+    })
     output$suburbInfo <- renderUI({
       if (is.null(selected_suburb_LOC_PID)) {
         return(tags$div(""))
