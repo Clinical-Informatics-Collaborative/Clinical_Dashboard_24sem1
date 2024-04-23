@@ -23,4 +23,7 @@ filtered_km_data <- km_data[km_data$group %in% drugs_of_interest, ]
 
 In order to run this website locally, open `app.R`, install required packages and library, and click `Run App`.
 
-_Note: currently it is build on local dataset. When MongoDB is finalized, this website should pull data from MongoDB directly_
+_Note: It is build on local dataset._
+
+`app_v1.R` aims to:
+1. Do everything `app.R` does, except that all the data is directly pulled from MongoDB.
