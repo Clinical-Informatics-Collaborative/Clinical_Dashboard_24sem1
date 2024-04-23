@@ -17,7 +17,7 @@ Genrate Synthetic Patient Data through Synthea:
 `data generation.ipynb` aims to:    
 1. Edit `patient.csv` from generated Synthea data (with multiple disease).    
 
-2. Basic data localization: change address from US to == Victoria, Australia == by editing CITY, STATE，COUNTY，ZIP，LAT，LON based on [Australian Postcodes](https://www.matthewproctor.com/australian_postcodes "Australian Postcodes") and [VIC Suburb](https://data.gov.au/dataset/ds-dga-bdf92691-c6fe-42b9-a0e2-a4cd716fa811/details "VIC Suburb"). change ETHNICITY from "hispanic" and "non-hispanic" to "Aboriginal and Torres Strait Islander" and "other".
+2. Basic data localization: change address from US to ==Victoria, Australia== by editing CITY, STATE，COUNTY，ZIP，LAT，LON based on [Australian Postcodes](https://www.matthewproctor.com/australian_postcodes "Australian Postcodes") and [VIC Suburb](https://data.gov.au/dataset/ds-dga-bdf92691-c6fe-42b9-a0e2-a4cd716fa811/details "VIC Suburb"). change ETHNICITY from "hispanic" and "non-hispanic" to "Aboriginal and Torres Strait Islander" and "other".
 
 3. Create a non-standard database by change 'COUNTY' to 'SUBURB'.
 
@@ -34,7 +34,7 @@ patients_df.to_csv("data/modified data/project3/patients.csv", index=False)
 
 You should be able to export different modified patient data.
 
-== Note: This file is written in early stage. It output a dataset with mixed disease. Later we realized that Redcap project is more focus on one disease, which leads to `heart disease.ipynb`.==
+==Note: This file is written in early stage. It output a dataset with mixed disease. Later we realized that Redcap project is more focus on one disease, which leads to `heart disease.ipynb`.==
 
 `heart disease.ipynb`aims to:
 1. Take two the generated dataset and filter out one disease. Here we are looking at Ischemic heart disease (disorder)  and Diabetes mellitus type 2 (disorder). Change this part to modify disease of interest:
@@ -43,7 +43,7 @@ You should be able to export different modified patient data.
 condition_df = condition_df[condition_df['DESCRIPTION'] == 'Ischemic heart disease (disorder)']
 ```
 
-2. Change address from US to == Melbourne region only ==. Remove the this part to cancel this change:
+2. Change address from US to ==Melbourne region only==. Remove the this part to cancel this change:
 ```python
 #reasign address
 melbourne_suburbs =[
@@ -59,6 +59,6 @@ melbourne_suburbs =[
 patient_df["COUNTY"] = random.choices(melbourne_suburbs, k=len(patient_df))
 ```
 
-== Note:  `data generation.ipynb` is run before `heart disease.ipynb` so there is no code for editting ETHNICITY in `heart disease.ipynb`. == 
+==Note:  `data generation.ipynb` is run before `heart disease.ipynb` so there is no code for editting ETHNICITY in `heart disease.ipynb`.== 
 
 
