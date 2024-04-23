@@ -35,10 +35,10 @@ Completed:
 
   2. Connect to WEHI R Shiny server and fetch data from Redcap Project using API.
 
+  3. Using MongoDB, establish an intermediary database for faster retrieval of data from the database.
+
 In Progress:
 
-  3. Using MongoDB, establish an intermediary database for faster retrieval of data from the database.
-  
   4. Build R Shiny UI and Server and launch the website.
 
   5. If possible, figure out how to map non-standard project to correct column name so that it can show visualization.
