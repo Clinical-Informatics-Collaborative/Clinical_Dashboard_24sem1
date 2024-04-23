@@ -4,16 +4,25 @@ This project is building with Python and R Shiny.
 
 ## Purpose and Goal
 
-This project aims to developing a clinical dashboard utilizing R Shiny, designed display the visualization of a certain clinical database sourced from Redcap. The dashboard offers users the ability to select specific diseases of interest and explore their distribution across Victoria, comparisons of death rates associated with popular medications, as well as analyses of disease prevalence across various variables, including ethnicity and income levels.
+This project aims to developing a clinical dashboard utilizing R Shiny, designed display the visualization of a certain clinical database sourced from Redcap. The dashboard offers users the ability to explore the disease of interest, including its distribution across melbourne or Victoria, comparisons of death rates associated with 2 popular medications, as well as analyses of disease prevalence across various variables, including ethnicity and income levels.
 
-Key functionalities include a user-friendly dropdown menu for disease selection, alongside interactive visual tools—ranging from dynamic maps to Kaplan-Meier survival plots, and comprehensive pie and bar charts. This project allow clinical workers to access and interpret data without the need for coding. Please note that throughout the development, all utilized databases are simulated data to ensure privacy and confidentiality.
+Please note that throughout the development, all utilized databases are simulated data to ensure privacy and confidentiality.
 
-![Project Dashboard Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/dashboard%20preview.png "Project Dashboard Preview")
+## Website Preview
+1. Welcome Page:
+![Welcome Page Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/Welcome.png "Welcome Page Preview")
+By clicking the drop down menu, user are allow to switch between three default example database.
 
-Please note that the attached visual is an early-stage preview and does not represent the final appearance of the dashboard.
+2. Geo-Map and Suburb Info:
+![Geo-Map Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/Map.png "Geo-Map Preview")
+By hoving on the suburb, user are allow to preview each suburb's info. Once the suburb selected, switch to Local Heatmaps tab and it will show the heatmap for this region.
+![Heatmap Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/HM.png "Heatmap Preview")
 
-## How to achieve this
-![Project Process](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/development%20process.png "Project Process")
+3. Kaplan-Meier Plot:
+![KM Plot Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/KM.png "KM Plot Preview")
+The Kaplan-Meier Plot looks at the most popular two medicine in the database.
+
+
 
 ## Method and Steps
 To achieve this, this project is splited into following steps. The related files are named accordingly. View jupyter notebook and R markdown inside the folder for details.
