@@ -419,7 +419,7 @@ server <- function(input, output, session) {
           tags$strong(selected_suburb$LOC_NAME, style = "font-size: 20px;"),
           tags$div(
             paste0(
-              "Total number of patients: ", selected_suburb$total_patients),
+              "Total number of patients: ", selected_suburb$all_patients),
             style = "font-size: 16px;"
           ),
           tags$div(

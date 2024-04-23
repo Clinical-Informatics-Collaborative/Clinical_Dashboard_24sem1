@@ -121,7 +121,10 @@ get_tidy_dataframe <- function(data) {
   
   geo_data <- df_patient %>%
     select(any_of(names(column_mapping))) %>%
-    rename_all(~ column_mapping[.])
+    rename_all(~ column_mapping[.]) %>%
+    mutate(INCOME = as.numeric(INCOME),
+           HEALTHCARE_EXPENSES = as.numeric(HEALTHCARE_EXPENSES),
+           HEALTHCARE_COVERAGE = as.numeric(HEALTHCARE_COVERAGE))
   
   # Add missing columns with all NA values
   missing_columns <- setdiff(names(match_data), names(geo_data))
@@ -436,7 +439,7 @@ server <- function(input, output, session) {
           tags$strong(selected_suburb$LOC_NAME, style = "font-size: 20px;"),
           tags$div(
             paste0(
-              "Total number of patients: ", selected_suburb$total_patients),
+              "Total number of patients: ", selected_suburb$all_patients),
             style = "font-size: 16px;"
           ),
           tags$div(
