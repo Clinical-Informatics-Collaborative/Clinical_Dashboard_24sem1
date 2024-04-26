@@ -22,7 +22,8 @@ By hoving on the suburb, user are allow to preview each suburb's info. Once the 
 ![KM Plot Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/KM.png "KM Plot Preview")
 The Kaplan-Meier Plot looks at the most popular two medicine in the database.
 
-
+## Process
+![flow chart](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/flow chart.png "flow chart")
 
 ## Method and Steps
 To achieve this, this project is splited into following steps. The related files are named accordingly. View jupyter notebook and R markdown inside the folder for details.
