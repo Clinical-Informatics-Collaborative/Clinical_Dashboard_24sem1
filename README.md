@@ -51,7 +51,7 @@ In Progress:
   2. **Where are your technical notes?**      
      [techical notes can be found here](https://wehieduau.sharepoint.com/:f:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Semester%201%20Technical%20notes?csf=1&web=1&e=r9Uw9f  "techical notes can be found here").     
      Notice that you need a WEHI email to access this folder.     
-  4. **Can you explan more about your steps?**     
+  4. **Can you explain more about your steps?**     
      Go to the numbered folder, there are detailed README for every code file and some useful guide to navigate you through the project.       
   5. **Where are your final presentation recording and slides?**
      You can find the presentation recording and slides here: 
