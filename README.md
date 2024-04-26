@@ -45,7 +45,7 @@ In Progress:
   5. If possible, figure out how to map non-standard project to correct column name so that it can show visualization.
 
 ## Q&A
-  1. **What should programming languages / tools I know in advance in order to understand your work?**    
+  1. **What programming languages / tools should I know in advance in order to understand your work?**    
      For programming languages: Python, R.      
      For technical tooks: Synthea, Redcap, MongoDB, Nectar, R Shiny.        
   2. **Where are your technical notes?**      
