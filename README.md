@@ -48,19 +48,19 @@ In Progress:
      For technical tools: Synthea, Redcap, MongoDB, Nectar, R Shiny.        
   2. **Where are your technical notes?**      
      [techical notes can be found here](https://wehieduau.sharepoint.com/:f:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Semester%201%20Technical%20notes?csf=1&web=1&e=r9Uw9f  "techical notes can be found here").     
-     Notice that you need a WEHI email to access this folder.     
+     _Notice that you need a WEHI email to access this folder._     
   3. **Can you explain more about your steps?**     
      Check folders of your interest. There are detailed README.md for every steps and some useful guides to navigate you through the project.       
   4. **Where are your final presentation recording and slides?**         
      You can find the final presentation recording and slides here:
     [presentation slide](https://wehieduau.sharepoint.com/:p:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Clinical%20Dashboard%20final%20presentation.pptx?d=wd9ea6c73a3de40baafd8cdd6999bf60f&csf=1&web=1&e=tqGzpG "presentation slide")       
-     Notice that you need a WEHI email to access this folder.
+     _Notice that you need a WEHI email to access this folder._
   5. **Any suggestion on possible topics for next intake students?**        
      There are some ideas:
-       a. Add more visualization on current tabs/pages or create a new page for new plots.         
-       b. Figure out how to map the non-standard database's field name to standard format.
-       c. Expand map region to entire Victoria region and ncrease the size of database accordingly.        
-       b. Take user input API and generate customized visualization.
+       i. Add more visualization on current tabs/pages or create a new page for new plots.         
+       ii. Figure out how to map the non-standard database's field name to standard format.
+       iii. Expand map region to entire Victoria region and ncrease the size of database accordingly.        
+       iv. Take user input API and generate customized visualization.
   6. **Why create project with only 1 disease rather than create a project with multiple disease and build a filter for them on website?**       
      This is because of the nature of the Redcap project. Rather than a hospital-like dataset with multiple disease, Redcap projects usually focus on studying one disease. Thus we change our databases generating process in step 0 Data Generation.
 
