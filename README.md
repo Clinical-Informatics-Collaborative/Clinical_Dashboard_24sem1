@@ -57,7 +57,7 @@ In Progress:
      You can find the final presentation recording and slides here:
     [presentation slide](https://wehieduau.sharepoint.com/:p:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Clinical%20Dashboard%20final%20presentation.pptx?d=wd9ea6c73a3de40baafd8cdd6999bf60f&csf=1&web=1&e=tqGzpG "presentation slide")       
      Notice that you need a WEHI email to access this folder.
-  5. **Any suggestion on possible topics for next intake students?**
+  5. **Any suggestion on possible topics for next intake students?**        
      There are some ideas:
        a. Add more visualization on current tabs/pages or create a new page for new plots.         
        b. Figure out how to map the non-standard database's field name to standard format.
