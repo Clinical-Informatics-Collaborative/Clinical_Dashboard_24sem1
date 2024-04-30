@@ -42,8 +42,6 @@ In Progress:
 
   4. Build R Shiny UI and Server and launch the website.
 
-  5. If possible, figure out how to map non-standard project to correct column name so that it can show visualization.
-
 ## Q&A
   1. **What programming languages / tools should I know in advance in order to understand your work?**    
      For programming languages: Python, R.      
@@ -62,6 +60,8 @@ In Progress:
        a. Add more visualization on current tabs/pages or create a new page for new plots.         
        b. Figure out how to map the non-standard database's field name to standard format.
        c. Expand map region to entire Victoria region and ncrease the size of database accordingly.        
-       b. Take user input API and generate customized visualization.         
+       b. Take user input API and generate customized visualization.
+  6. **Why create project with only 1 disease rather than create a project with multiple disease and build a filter for them on website?**       
+     This is because of the nature of the Redcap project. Rather than a hospital-like dataset with multiple disease, Redcap projects usually focus on studying one disease. Thus we change our databases generating process in step 0 Data Generation.
 
 
