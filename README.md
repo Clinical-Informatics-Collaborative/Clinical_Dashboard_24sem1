@@ -56,11 +56,11 @@ In Progress:
     [presentation slide](https://wehieduau.sharepoint.com/:p:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Clinical%20Dashboard%20final%20presentation.pptx?d=wd9ea6c73a3de40baafd8cdd6999bf60f&csf=1&web=1&e=tqGzpG "presentation slide")       
      _Notice that you need a WEHI email to access this folder._
   5. **Any suggestion on possible topics for next intake students?**        
-     There are some ideas:
-       i. Add more visualization on current tabs/pages or create a new page for new plots.         
-       ii. Figure out how to map the non-standard database's field name to standard format.
-       iii. Expand map region to entire Victoria region and ncrease the size of database accordingly.        
-       iv. Take user input API and generate customized visualization.
+     There are some ideas:        
+       i. Add more visualization on current tabs/pages or create a new page for new plots.             
+       ii. Figure out how to map the non-standard database's field name to standard format.      
+       iii. Expand map region to entire Victoria region and ncrease the size of database accordingly.         
+       iv. Take user input API and generate customized visualization.         
   6. **Why create project with only 1 disease rather than create a project with multiple disease and build a filter for them on website?**       
      This is because of the nature of the Redcap project. Rather than a hospital-like dataset with multiple disease, Redcap projects usually focus on studying one disease. Thus we change our databases generating process in step 0 Data Generation.
 
