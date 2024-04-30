@@ -51,11 +51,17 @@ In Progress:
   2. **Where are your technical notes?**      
      [techical notes can be found here](https://wehieduau.sharepoint.com/:f:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Semester%201%20Technical%20notes?csf=1&web=1&e=r9Uw9f  "techical notes can be found here").     
      Notice that you need a WEHI email to access this folder.     
-  4. **Can you explain more about your steps?**     
+  3. **Can you explain more about your steps?**     
      Check folders of your interest. There are detailed README.md for every steps and some useful guides to navigate you through the project.       
-  5. **Where are your final presentation recording and slides?**
-     You can find the final presentation recording and slides here: 
+  4. **Where are your final presentation recording and slides?**         
+     You can find the final presentation recording and slides here:
     [presentation slide](https://wehieduau.sharepoint.com/:p:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Clinical%20Dashboard%20final%20presentation.pptx?d=wd9ea6c73a3de40baafd8cdd6999bf60f&csf=1&web=1&e=tqGzpG "presentation slide")       
-     Notice that you need a WEHI email to access this folder.     
+     Notice that you need a WEHI email to access this folder.
+  5. **Any suggestion on possible topics for next intake students?**
+     There are some ideas:
+       a. Add more visualization on current tabs/pages or create a new page for new plots.         
+       b. Figure out how to map the non-standard database's field name to standard format.
+       c. Expand map region to entire Victoria region and ncrease the size of database accordingly.        
+       b. Take user input API and generate customized visualization.         
 
 
