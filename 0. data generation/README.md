@@ -14,7 +14,7 @@ Genrate Synthetic Patient Data through Synthea:
 
 
 ## Info for Existing .ipynb File   
-`data generation.ipynb` aims to:    
+[data generation.ipynb](data generation.ipynb) aims to:    
 1. Edit `patient.csv` from generated Synthea data (with multiple disease).    
 
 2. Basic data localization: change address from US to _Victoria, Australia_ by editing CITY, STATE，COUNTY，ZIP，LAT，LON based on [Australian Postcodes](https://www.matthewproctor.com/australian_postcodes "Australian Postcodes") and [VIC Suburb](https://data.gov.au/dataset/ds-dga-bdf92691-c6fe-42b9-a0e2-a4cd716fa811/details "VIC Suburb"). change ETHNICITY from "hispanic" and "non-hispanic" to "Aboriginal and Torres Strait Islander" and "other".
