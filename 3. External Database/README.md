@@ -1,4 +1,4 @@
-# STEP 4: External Database (MongoDB)
+# STEP 3: External Database (MongoDB)
 
 ## Info for Existing .ipynb File  
 `import2mongodb.ipynb` aims to:
