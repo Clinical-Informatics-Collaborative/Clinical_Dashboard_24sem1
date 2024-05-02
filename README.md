@@ -1,67 +1,34 @@
 # Clinical_Dashboard_24sem1
-
+Welcome to the Clinical Dashboard repository.        
+For details on the goals and implementation of this project visit the [Clinical Dashboard wiki](https://github.com/Clinical-Informatics-Collaborative/Clinical_Dashboard_24sem1/wiki "Clinical Dashboard wiki") page.        
 This project is building with Python and R Shiny.
 
-## Purpose and Goal
+## Directory Structure
+For details on prep before each step refer to `Readme.md` within each folder.       
+### STEP 0: Data Generation
+`data generation.ipynb`: localize address to Austalia and change ETHNICITY  to "Aboriginal and Torres Strait Islander" and "other". Create a non-standard database by change 'COUNTY' to 'SUBURB'.             
+`heart disease.ipynb`: filter out Ischemic heart disease (disorder) and Diabetes mellitus type 2 (disorder) and save to three databases accordingly. Change address from US to Melbourne region only.           
 
-This project aims to developing a clinical dashboard utilizing R Shiny, designed display the visualization of a certain clinical database sourced from Redcap. The dashboard offers users the ability to explore the disease of interest, including its distribution across melbourne or Victoria, comparisons of death rates associated with 2 popular medications, as well as analyses of disease prevalence across various variables, including ethnicity and income levels.
+### STEP 1: Upload File to Redcap        
+`data generation.ipynb`: merge `patient.csv`, `condition.csv`, `medication.csv` into one. Modify their format based on Redcap upload template.Upload file that exceed the website's limit.              
+`TESTIschemicHeartDis_2024-03-24_2246.REDCap.xml`: Template for creating standard Redcap project.           
+`ClinicalDashboardsDataset_ImportTemplate.csv`: Template for uploading standard dataset.           
+`ClinicalDashboardsDataset_ImportNonstandardTemplate.csv`: Template for uploading non-standard dataset.        
 
-Please note that throughout the development, all utilized databases are simulated data to ensure privacy and confidentiality.
+### STEP 2: Connect Redcap to R through API
+This step is mainly carry out on Redcap.
 
-## Website Preview
-1. Welcome Page:
-![Welcome Page Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/Welcome.png "Welcome Page Preview")
-By clicking the drop down menu, user are allow to switch between three default example database.
+### STEP 3: External Database (MongoDB)
+`import2mongodb.ipynb`: export the three databases from Redcap API and import them to mongoDB dataset.
 
-2. Geo-Map and Suburb Info:
-![Geo-Map Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/Map.png "Geo-Map Preview")
-By hoving on the suburb, user are allow to preview each suburb's info. Once the suburb selected, switch to Local Heatmaps tab and it will show the heatmap for this region.
-![Heatmap Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/HM.png "Heatmap Preview")
+### STEP 4: Build R Shiny 
+`Fetch Data From Redcap API.R`: get data from Redcap API and save at local directory for testing purpose          
+`app.R`: use downloaded local data, create Geo-map and Kaplan Meier Plot on website.
+`app_v1.R`: use data from MongoDB, create Geo-map and Kaplan Meier Plot on website.
+`data/diabetes_data.csv`, `data/heart_disease_data.csv`, `data\non_standard_data.csv`: csv file download through `Fetch Data From Redcap API.R`
+`data/sf`: victoria map shape file.
 
-3. Kaplan-Meier Plot:
-![KM Plot Preview](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/KM.png "KM Plot Preview")
-The Kaplan-Meier Plot looks at the most popular two medicine in the database.
-
-## Process
-![flow chart](https://github.com/miayokka0926/Clinical_Dashboard_24sem1/blob/main/Picture/flowchart.png "flow chart")
-
-## Method and Steps
-To achieve this, this project is splited into following steps. The related files are named accordingly. View jupyter notebook and R markdown inside the folder for details.
-
-Completed:
-
-  0. Generate stimulated data through Synthea and modify patients' ethnecity group and address information to suit Australia's situation. (Idealy, users should use their own database. This process is only for developers.)
-
-  1. Create Redcap project, fit the generated data into redcap upload template and upload to the desired project through API. For merging and uploading data, refer to 1st intake's work [Redcap Upload](https://github.com/Clinical-Informatics-Collaborative/clinical_dashboards/tree/main/Redcap "Redcap Upload"). There are 3 project in total for demostration: 2 standard project and 1 non-standard project (with wrong column name).
-
-  2. Connect to WEHI R Shiny server and fetch data from Redcap Project using API.
-
-  3. Using MongoDB, establish an intermediary database for faster retrieval of data from the database.
-
-In Progress:
-
-  4. Build R Shiny UI and Server and launch the website.
-
-## Q&A
-  1. **What programming languages / tools should I know in advance in order to understand your work?**    
-     For programming languages: Python, R.      
-     For technical tools: Synthea, Redcap, MongoDB, Nectar, R Shiny.        
-  2. **Where are your technical notes?**      
-     [techical notes can be found here](https://wehieduau.sharepoint.com/:f:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Semester%201%20Technical%20notes?csf=1&web=1&e=r9Uw9f  "techical notes can be found here").     
-     _Notice that you need a WEHI email to access this folder._     
-  3. **Can you explain more about your steps?**     
-     Check folders of your interest. There are detailed README.md for every steps and some useful guides to navigate you through the project.       
-  4. **Where are your final presentation recording and slides?**         
-     You can find the final presentation recording and slides here:
-    [presentation slide](https://wehieduau.sharepoint.com/:p:/r/sites/StudentInternGroupatWEHI/Shared%20Documents/Clinical%20Dashboards/2024%20Clinical%20Dashboard%20final%20presentation.pptx?d=wd9ea6c73a3de40baafd8cdd6999bf60f&csf=1&web=1&e=tqGzpG "presentation slide")       
-     _Notice that you need a WEHI email to access this folder._
-  5. **Any suggestion on possible topics for next intake students?**        
-     There are some ideas:        
-       i. Add more visualization on current tabs/pages or create a new page for new plots.             
-       ii. Figure out how to map the non-standard database's field name to standard format.      
-       iii. Expand map region to entire Victoria region and ncrease the size of database accordingly.         
-       iv. Take user input API and generate customized visualization.         
-  6. **Why create project with only 1 disease rather than create a project with multiple disease and build a filter for them on website?**       
-     This is because of the nature of the Redcap project. Rather than a hospital-like dataset with multiple disease, Redcap projects usually focus on studying one disease. Thus we change our databases generating process in step 0 Data Generation.
-
+## Running This Application
+Method 1: go to launched website [Clinical Dashboard](http://115.146.87.171:3838/sample-apps/Clinical_Dashboard/ "Clinical Dashboard")            
+Method 2：download everything in step 
 
