@@ -9,7 +9,7 @@ This project is building with Python and R Shiny.
 For details on prep before each step refer to `Readme.md` within each folder.       
 
 ### STEP 0: Data Generation
-`[data generation.ipynb](https://github.com/Clinical-Informatics-Collaborative/Clinical_Dashboard_24sem1/blob/main/0.%20data%20generation/data%20generation.ipynb "data generation.ipynb")`: localize address to Austalia and change ETHNICITY  to "Aboriginal and Torres Strait Islander" and "other". Create a non-standard database by change 'COUNTY' to 'SUBURB'.             
+[data generation.ipynb](0. data generation/data generation.ipynb): localize address to Austalia and change ETHNICITY  to "Aboriginal and Torres Strait Islander" and "other". Create a non-standard database by change 'COUNTY' to 'SUBURB'.             
 
 `heart disease.ipynb`: filter out Ischemic heart disease (disorder) and Diabetes mellitus type 2 (disorder) and save to three databases accordingly. Change address from US to Melbourne region only. 
 
