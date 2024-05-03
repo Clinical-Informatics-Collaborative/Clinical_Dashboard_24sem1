@@ -47,7 +47,7 @@ Data:
    - `data/sf`: victoria map shape file.         
 
 ## Running This Application
-- **Method 1: go to launched website [Clinical Dashboard](http://115.146.87.171:3838/sample-apps/Clinical_Dashboard/ "Clinical Dashboard")**             
+- **Method 1: go to launched website [Clinical Dashboard]((http://203.101.229.172:3838/redcap-portal/ "Clinical Dashboard")**             
 
 - **Method 2：run Shiny app locally**        
    1. download release v1.0.0.           
