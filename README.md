@@ -49,7 +49,7 @@ Data:
 ## Running This Application
 - **Method 1: go to launched website [Clinical Dashboard](http://115.146.87.171:3838/sample-apps/Clinical_Dashboard/ "Clinical Dashboard")**             
 
-- **Method 2：**run Shiny app locally**        
+- **Method 2：run Shiny app locally**        
    1. download release v1.0.0.           
    2. Prerequisites: R, RStudio.           
    3. navigate to `app.R` or `app_v1.R`, open with R studio and click 'Run App'.          
