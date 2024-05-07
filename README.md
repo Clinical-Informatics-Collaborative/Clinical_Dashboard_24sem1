@@ -39,7 +39,7 @@ Code:
 
    - `app.R`: use downloaded local data, create Geo-map and Kaplan Meier Plot on website.        
 
-   - `app_v1.R`: use data from MongoDB, create Geo-map and Kaplan Meier Plot on website.         
+   - `global.R`, `ui.R`, `server.R`: use data from MongoDB, create Geo-map and Kaplan Meier Plot on website.         
 
 Data:      
    - `data/diabetes_data.csv`, `data/heart_disease_data.csv`, `data\non_standard_data.csv`: csv file download through `Fetch Data From Redcap API.R`          
@@ -50,8 +50,8 @@ Data:
 - **Method 1: go to launched website [Clinical Dashboard](http://203.101.229.172:3838/redcap-portal/ "Clinical Dashboard")**             
 
 - **Method 2：run Shiny app locally**        
-   1. download release v1.0.0.           
+   1. download release.           
    2. Prerequisites: R, RStudio.           
-   3. navigate to `app.R` or `app_v1.R`, open with R studio and click 'Run App'.          
+   3. navigate to `app.R`, open with R studio and click 'Run App'.          
    ![run app](https://github.com/Clinical-Informatics-Collaborative/Clinical_Dashboard_24sem1/blob/main/Picture/App.png "run app")
 
