@@ -1,0 +1,7 @@
+mongo_credentials:
+  username: AdminCD
+  password: iwannasleep
+  host_ip: 115.146.84.81
+  port: 27017
+  db_name: Redcap
+  authSource: admin
