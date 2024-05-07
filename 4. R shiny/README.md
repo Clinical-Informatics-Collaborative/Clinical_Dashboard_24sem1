@@ -4,7 +4,7 @@
 `Fetch Data From Redcap API.R` aims to:
 1. Get data from Redcap API and save at local directory for testing purpose.
 
-`app.R` aims to:
+`app.R` in Clinial Dashboard Local aims to:
 1. Include 3 sample dataset to preview the effect. Present Redcap Links to these dataset.
 
 2. Create Geo-map: allow user to view info of the disease of interest by click on suburbs. Display map for melbourn region only. In order to view the entire Victoria region, remove this part:
@@ -25,5 +25,5 @@ In order to run this website locally, open `app.R`, install required packages an
 
 _Note: It is build on local dataset._
 
-`app_v1.R` aims to:
+`global.R`, `ui.R`, `server.R` in Clinial Dashboard aims to:
 1. Do everything `app.R` does, except that all the data is directly pulled from MongoDB.
